@@ -8,6 +8,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.Arrays;
 
 /**
  * @author m.Shahrestanaki @createDate 5/26/2025
@@ -23,8 +24,15 @@ public class ReadConfigSrv implements IReadConfigSrv{
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).build();
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            System.out.println("HTTP Status: " + response.statusCode());
-            System.out.println("Content:\n" + response.body());
+            if (response.statusCode() == 200) {
+                System.out.println("HTTP Status: 200\nFiltered VLESS links:");
+                Arrays.stream(response.body().split("\n"))
+                        .map(String::trim)
+                        .filter(line -> line.startsWith("vless://") || line.startsWith("vlessl://"))
+                        .forEach(System.out::println);
+            } else {
+                System.out.println("Failed to fetch content. Status: " + response.statusCode());
+            }
         }catch (Exception e){
             log.error("error : ",e);
         }
