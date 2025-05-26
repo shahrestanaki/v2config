@@ -1,0 +1,6 @@
+server:
+  servlet:
+    context-path: /v2config
+spring:
+  profiles:
+    active: develop

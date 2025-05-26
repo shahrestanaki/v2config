@@ -1,0 +1,25 @@
+server:
+  port: 8001
+#spring:
+#  datasource:
+#    username: sa
+#    password:
+#    #url: jdbc:h2:file:e:/testdb;INIT=CREATE SCHEMA IF NOT EXISTS USER_MGMT;NON_KEYWORDS=KEY
+#    url: jdbc:h2:mem:testdb;INIT=CREATE SCHEMA IF NOT EXISTS TEMP;NON_KEYWORDS=KEY
+#    driverClassName: org.h2.Driver
+#  h2:
+#    console:
+#      enabled: true
+#  jpa:
+#    show-sql: true
+#    database-platform: org.hibernate.dialect.H2Dialect
+#    defer-datasource-initialization : true
+#    init:
+#      platform: h2
+#    hibernate:
+#      ddl-auto: none
+
+#  sql:
+#    init:
+#      data-locations:
+#        - classpath:script/h2/schema.sql
