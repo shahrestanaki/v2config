@@ -1,5 +1,19 @@
 server:
   port: 8001
+
+config:
+  file:
+    subscribe: subscribe.txt
+    config:
+      none-test: none.txt
+      tci: tci.txt
+      irancell: irancell.txt
+      rightel: rightel.txt
+    supported-protocols: "vmess://,vless://,trojan://,shadowsocks://,http://,socks://,dokodemo-door://"
+    v2rayLocation: "e:/"
+  github:
+    token: "ghp_Mc0DD2II4ZyimSLHOV9pqkbgGqDHSUB4O5NIy"
+
 #spring:
 #  datasource:
 #    username: sa
