@@ -9,9 +9,12 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author m.Shahrestanaki @createDate 5/26/2025
@@ -75,7 +78,9 @@ public class ReadConfigSrv implements IReadConfigSrv {
             if (!configs.isEmpty()) {
                 List<String> confirmConfigs = checkConfig(new ArrayList<>(configs), input);
                 if (!confirmConfigs.isEmpty()) {
-                    result = filesSrv.saveToFile(confirmConfigs, Paths.get(filesLocation).resolve(input.getOperatorFile()));
+                    String joinedConfigs = String.join("\n", configs);
+                    String base64Encoded = Base64.getEncoder().encodeToString(joinedConfigs.getBytes(StandardCharsets.UTF_8));
+                    result = filesSrv.saveToJsonOrBase64File(base64Encoded, Paths.get(filesLocation).resolve(input.getOperatorFile()));
                 }
             }
         } catch (Exception e) {
@@ -88,13 +93,10 @@ public class ReadConfigSrv implements IReadConfigSrv {
     public boolean pushToGitHub(InputDto input) {
         boolean result = false;
         try {
-            String file = null;
-            if (file != null) {
-                List<String> configs = filesSrv.readFile(Paths.get(filesLocation).resolve(input.getOperatorFile()));
-                if (!configs.isEmpty()) {
-                    Path path = Paths.get(filesLocation).resolve(input.getOperatorFile());
-                    gitHubsSrv.githubUploader("shahrestanaki/v2config", input.getOperatorFile(), "master", path.getFileName(), "created or update file : " + input.getOperatorFile());
-                }
+            Path path = Paths.get(filesLocation).resolve(input.getOperatorFile());
+            if (Files.exists(path)) {
+                gitHubsSrv.githubUploader("shahrestanaki/v2config", input.getOperatorFile(),
+                        "master", path, "created or update file : " + input.getOperatorFile());
             }
         } catch (Exception e) {
             log.error("error in pushToGitHub: ", e);
@@ -107,16 +109,18 @@ public class ReadConfigSrv implements IReadConfigSrv {
         List<String> data = new ArrayList<>();
         Map<String, Double> result = new HashMap<>();
         try {
+            AtomicInteger count = new AtomicInteger();
             configs.forEach(item -> {
                 boolean status = v2GenerateSrv.vless(item, Paths.get(v2rayMainLocation + v2rayConfigFile));
                 log.info("success save json file for record {}: is: {} in operator: {}", 0, status, input.getOperator());
                 if (status) {
                     Double time = checkCurlCall(v2GenerateSrv.testConnection());
-                    log.info("timing for record {}: is: {} ", 0, time);
+                    log.info("timing for record {}: is: {} ", count.get(), time);
                     if (time != null && time < v2rayMaxPing) {
                         result.put(configs.get(0), time);
                     }
                 }
+                count.getAndIncrement();
             });
             if (!result.isEmpty()) {
                 data = result.entrySet().stream()
@@ -193,7 +197,7 @@ public class ReadConfigSrv implements IReadConfigSrv {
                 Path path = Paths.get(System.getProperty("user.dir")).resolve("132456.txt");
                 boolean result = filesSrv.saveToFile(data, path);
                 if (result) {
-                    gitHubsSrv.githubUploader("shahrestanaki/v2config", input.getOperatorFile(), "master", path.getFileName(), "created");
+                    gitHubsSrv.githubUploader("shahrestanaki/v2config", input.getOperator(), "master", path.getFileName(), "created");
                 }
             }
         } catch (Exception e) {

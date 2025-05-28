@@ -16,7 +16,7 @@ config:
     maxPing: 2000
   supported-protocols: "vmess://,vless://,trojan://,shadowsocks://,http://,socks://,dokodemo-door://"
   github:
-    token: "ghp_Mc0DD2II4ZyimSLHOV9pqkbgGqDHSUB4O5NIy"
+    token: "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"
 #spring:
 #  datasource:
 #    username: sa

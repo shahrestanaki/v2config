@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,10 +27,10 @@ public class FilesSrv {
         log.info("result for saveToFile is {} records in file : {}", data.size(),path.getFileName());
         return result;
     }
-    public boolean saveToJsonFile(String json, Path path) {
+    public boolean saveToJsonOrBase64File(String data, Path path) {
         boolean result = false;
         try {
-            Files.writeString(path, json, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            Files.writeString(path, data, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
             result = true;
         } catch (Exception e) {
             log.error("error : ", e);

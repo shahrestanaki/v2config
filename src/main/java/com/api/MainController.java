@@ -67,7 +67,7 @@ public class MainController {
         return result;
     }
 
-    @GetMapping(value = "pushToGitHub")
+    @PostMapping(value = "pushToGitHub")
     public @ResponseBody
     Object pushToGitHub(@RequestBody InputDto input, HttpServletRequest request) {
         boolean result = false;

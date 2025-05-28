@@ -113,7 +113,7 @@ public class V2GenerateSrv {
                       ]
                     }
                     """.formatted(address, port, userId, encryption, network, security, path, host);
-            result = filesSrv.saveToJsonFile(json, outputPath);
+            result = filesSrv.saveToJsonOrBase64File(json, outputPath);
         } catch (Exception e) {
             log.error("error in vless: ", e);
         }
