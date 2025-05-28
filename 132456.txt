@@ -1,3 +1,0 @@
-vless://741acb20-66c9-11ef-b432-205c6d5f5d78@asia1.fufo.org:80?encryption=none&security=none&type=ws&path=%2Fvlws#%F0%9F%87%B3%F0%9F%87%B1%20freev2ray_s
-vless://741acb20-66c9-11ef-b432-205c6d5f5d78@asia1.fufo.org:443?encryption=none&security=tls&type=ws&path=%2Fvlws#%F0%9F%87%B3%F0%9F%87%B1%20freev2ray_s_tls
-vlessl://741acb20-66c9-11ef-b432-205c6d5f5d78@asia1.fufo.org:80?encryption=none&security=none&type=ws&path=%2Fvlws#%F0%9F%87%B3%F0%9F%87%B1%20freev2ray_s

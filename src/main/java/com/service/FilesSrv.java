@@ -29,10 +29,10 @@ public class FilesSrv {
         return result;
     }
 
-    public List<String> readFile(String fileName) {
+    public List<String> readFile(Path path) {
         List<String> result = new ArrayList<>();
         try {
-            Path path = Paths.get(System.getProperty("user.dir")).resolve(fileName);
+            //Path path = Paths.get(System.getProperty("user.dir")).resolve(fileName);
             result = Files.lines(path).collect(Collectors.toList());
         } catch (Exception e) {
             log.error("error : ", e);

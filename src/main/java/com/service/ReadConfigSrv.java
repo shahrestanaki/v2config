@@ -25,18 +25,14 @@ public class ReadConfigSrv implements IReadConfigSrv {
 
     @Value("${config.file.subscribe}")
     private String subscribe;
-    @Value("${config.file.supported-protocols}")
+    @Value("${config.supported-protocols}")
     private String supportedProtocols;
     @Value("${config.file.v2rayLocation}")
     private String v2rayLocation;
-    @Value("${config.file.config.none-test}")
-    private String noneTest;
-    @Value("${config.file.tci}")
-    private String tci;
-    @Value("${config.file.irancell}")
-    private String irancell;
-    @Value("${config.file.rightel}")
-    private String rightel;
+    @Value("${config.file.filesLocation}")
+    private String filesLocation;
+    @Value("${config.file.none}")
+    private String noneFile;
 
     public List<String> getSupportedProtocols() {
         return Arrays.asList(supportedProtocols.split(","));
@@ -51,12 +47,12 @@ public class ReadConfigSrv implements IReadConfigSrv {
     public boolean gatheringConfigs(InputDto input) {
         boolean result = false;
         try {
-            List<String> sub = filesSrv.readFile(subscribe);
+            List<String> sub = filesSrv.readFile(Paths.get(filesLocation).resolve(subscribe));
             if (!sub.isEmpty()) {
                 Set<String> configs = new HashSet<>();
                 sub.forEach(url -> configs.addAll(readUrl(url)));
                 if (!configs.isEmpty()) {
-                    result = filesSrv.saveToFile(new ArrayList<>(configs), Paths.get(noneTest).resolve(input.getOperator()));
+                    result = filesSrv.saveToFile(new ArrayList<>(configs), Paths.get(filesLocation).resolve(noneFile));
                 }
             }
         } catch (Exception e) {
@@ -69,11 +65,11 @@ public class ReadConfigSrv implements IReadConfigSrv {
     public boolean checkConfig(InputDto input) {
         boolean result = false;
         try {
-            List<String> configs = filesSrv.readFile(noneTest);
+            List<String> configs = filesSrv.readFile(Paths.get(filesLocation).resolve(noneFile));
             if (!configs.isEmpty()) {
                 List<String> confirmConfigs = checkConfig(new ArrayList<>(configs), input);
                 if (!confirmConfigs.isEmpty()) {
-                    result = filesSrv.saveToFile(confirmConfigs, Paths.get(v2rayLocation).resolve(input.getOperator()));
+                    result = filesSrv.saveToFile(confirmConfigs, Paths.get(filesLocation).resolve(input.getOperatorFile()));
                 }
             }
         } catch (Exception e) {
@@ -87,16 +83,11 @@ public class ReadConfigSrv implements IReadConfigSrv {
         boolean result = false;
         try {
             String file = null;
-            switch (input.getOperator()) {
-                case "tci" -> file = tci;
-                case "irancell" -> file = irancell;
-                case "rightel" -> file = rightel;
-            }
             if (file != null) {
-                List<String> configs = filesSrv.readFile(file);
+                List<String> configs = filesSrv.readFile(Paths.get(filesLocation).resolve(input.getOperatorFile()));
                 if (!configs.isEmpty()) {
-                    Path path = Paths.get(v2rayLocation).resolve(input.getOperator());
-                    gitHubsSrv.githubUploader("shahrestanaki/v2config", input.getOperator(), "master", path.getFileName(), "created");
+                    Path path = Paths.get(v2rayLocation).resolve(input.getOperatorFile());
+                    gitHubsSrv.githubUploader("shahrestanaki/v2config", input.getOperatorFile(), "master", path.getFileName(), "created or update file : " + input.getOperatorFile());
                 }
             }
         } catch (Exception e) {
@@ -109,8 +100,7 @@ public class ReadConfigSrv implements IReadConfigSrv {
     private List<String> checkConfig(List<String> configs, InputDto input) {
         List<String> data = new ArrayList<>();
         try {
-            Path path = Paths.get(v2rayLocation).resolve(input.getOperator());
-            filesSrv.saveToFile(configs, path);
+            filesSrv.saveToFile(configs, Paths.get(v2rayLocation).resolve(input.getOperatorFile()));
             //check config
             //sort by response and save in : data
         } catch (Exception e) {
@@ -164,7 +154,7 @@ public class ReadConfigSrv implements IReadConfigSrv {
                 Path path = Paths.get(System.getProperty("user.dir")).resolve("132456.txt");
                 boolean result = filesSrv.saveToFile(data, path);
                 if (result) {
-                    gitHubsSrv.githubUploader("shahrestanaki/v2config", input.getOperator(), "master", path.getFileName(), "created");
+                    gitHubsSrv.githubUploader("shahrestanaki/v2config", input.getOperatorFile(), "master", path.getFileName(), "created");
                 }
             }
         } catch (Exception e) {

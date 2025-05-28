@@ -23,7 +23,7 @@ public class MainController {
 
     @GetMapping(value = "ping")
     public @ResponseBody
-    Object ping(Locale locale) {
+    Object ping() {
         try {
             log.info("OK. I am here.");
         } catch (Exception e) {
@@ -43,9 +43,9 @@ public class MainController {
         return null;
     }
 
-    @GetMapping(value = "gatheringConfigs")
+    @PostMapping(value = "gatheringConfigs")
     public @ResponseBody
-    Object gatheringConfigs(InputDto input, HttpServletRequest request) {
+    Object gatheringConfigs(@RequestBody InputDto input, HttpServletRequest request) {
         boolean result = false;
         try {
             result = configSrv.gatheringConfigs(input);
@@ -55,9 +55,9 @@ public class MainController {
         return result;
     }
 
-    @GetMapping(value = "checkConfig")
+    @PostMapping(value = "checkConfig")
     public @ResponseBody
-    Object checkConfig(InputDto input, HttpServletRequest request) {
+    Object checkConfig(@RequestBody InputDto input, HttpServletRequest request) {
         boolean result = false;
         try {
             result = configSrv.checkConfig(input);
@@ -69,7 +69,7 @@ public class MainController {
 
     @GetMapping(value = "pushToGitHub")
     public @ResponseBody
-    Object pushToGitHub(InputDto input, HttpServletRequest request) {
+    Object pushToGitHub(@RequestBody InputDto input, HttpServletRequest request) {
         boolean result = false;
         try {
             result = configSrv.pushToGitHub(input);
