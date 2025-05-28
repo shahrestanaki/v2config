@@ -25,7 +25,7 @@ public class FilesSrv {
         } catch (Exception e) {
             log.error("error : ", e);
         }
-        log.info("result for saveToFile is {} records", data.size());
+        log.info("result for saveToFile is {} records in file : {}", data.size(),path.getFileName());
         return result;
     }
     public boolean saveToJsonFile(String json, Path path) {

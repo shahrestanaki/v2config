@@ -4,13 +4,19 @@ server:
 config:
   file:
     filesLocation: E:\ME\tempFile\v2ReadConfig
-    v2rayLocation: E:\v-windows-64\config.json
     none: none.txt
     subscribe: subscribe.txt
+  v2ray:
+    main: E:\v-windows-64\
+    configFile: config.json
+    testPort: 8080
+    exe: v.exe
+    timeoutSeconds: 10
+    urlTest: https://www.youtube.com
+    maxPing: 2000
   supported-protocols: "vmess://,vless://,trojan://,shadowsocks://,http://,socks://,dokodemo-door://"
   github:
     token: "ghp_Mc0DD2II4ZyimSLHOV9pqkbgGqDHSUB4O5NIy"
-
 #spring:
 #  datasource:
 #    username: sa

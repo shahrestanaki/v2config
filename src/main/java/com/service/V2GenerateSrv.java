@@ -5,8 +5,11 @@ package com.service;
  */
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -18,6 +21,18 @@ import java.util.stream.Collectors;
 @Service
 public class V2GenerateSrv {
     private final FilesSrv filesSrv;
+    @Value("${config.v2ray.main}")
+    private String v2rayMainLocation;
+    @Value("${config.v2ray.configFile}")
+    private String v2rayConfigFile;
+    @Value("${config.v2ray.testPort}")
+    private String v2rayTestPort;
+    @Value("${config.v2ray.exe}")
+    private String v2rayExeFile;
+    @Value("${config.v2ray.timeoutSeconds}")
+    private String v2rayTimeoutSeconds;
+    @Value("${config.v2ray.urlTest}")
+    private String v2rayUrlTest;
 
     public V2GenerateSrv(FilesSrv filesSrv) {
         this.filesSrv = filesSrv;
@@ -53,7 +68,8 @@ public class V2GenerateSrv {
                     {
                       "inbounds": [
                         {
-                          "port": 1080,
+                          "port": """ + v2rayTestPort + "," + """
+                          
                           "listen": "127.0.0.1",
                           "protocol": "socks",
                           "settings": {
@@ -97,11 +113,55 @@ public class V2GenerateSrv {
                       ]
                     }
                     """.formatted(address, port, userId, encryption, network, security, path, host);
-            result = filesSrv.saveToJsonFile(json,outputPath);
+            result = filesSrv.saveToJsonFile(json, outputPath);
         } catch (Exception e) {
             log.error("error in vless: ", e);
         }
         return result;
     }
 
+
+    public String testConnection() {
+        String result = null;
+        Process v2rayProcess = null;
+        Process curlProcess = null;
+        try {
+            // run v2ray apps
+            ProcessBuilder v2rayProcessBuilder = new ProcessBuilder(v2rayMainLocation + v2rayExeFile, "-config", v2rayConfigFile);
+            v2rayProcess = v2rayProcessBuilder.start();
+
+            //  sleep for upping V2Ray
+            Thread.sleep(5000);
+
+            ProcessBuilder curlProcessBuilder = new ProcessBuilder(
+                    "curl",
+                    "-x", "socks5h://127.0.0.1:" + v2rayTestPort + "",
+                    "-o", "nul",
+                    "-s",
+                    "-w", "TIME: %{time_total}\\n",
+                    "--max-time", String.valueOf(v2rayTimeoutSeconds),
+                    v2rayUrlTest
+            );
+            curlProcess = curlProcessBuilder.start();
+        } catch (Exception e) {
+            log.error("error in vless: ", e);
+            Thread.currentThread().interrupt();
+        }
+        if (curlProcess != null) {
+            // call curl
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(curlProcess.getInputStream()))) {
+                String line = reader.readLine();
+                //  wait for end curl
+                curlProcess.waitFor();
+                // stop v2ray
+                v2rayProcess.destroy();
+                result = line != null ? line : "No response from curl";
+            } catch (Exception e) {
+                v2rayProcess.destroy();
+                log.error("Error during curl execution: " + e.getMessage());
+                Thread.currentThread().interrupt();
+            }
+        }
+        return result;
+    }
 }

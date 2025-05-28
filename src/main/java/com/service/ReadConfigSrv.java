@@ -28,12 +28,16 @@ public class ReadConfigSrv implements IReadConfigSrv {
     private String subscribe;
     @Value("${config.supported-protocols}")
     private String supportedProtocols;
-    @Value("${config.file.v2rayLocation}")
-    private String v2rayLocation;
+    @Value("${config.v2ray.main}")
+    private String v2rayMainLocation;
+    @Value("${config.v2ray.configFile}")
+    private String v2rayConfigFile;
     @Value("${config.file.filesLocation}")
     private String filesLocation;
     @Value("${config.file.none}")
     private String noneFile;
+    @Value("${config.v2ray.maxPing}")
+    private Double v2rayMaxPing;
 
     public List<String> getSupportedProtocols() {
         return Arrays.asList(supportedProtocols.split(","));
@@ -88,12 +92,12 @@ public class ReadConfigSrv implements IReadConfigSrv {
             if (file != null) {
                 List<String> configs = filesSrv.readFile(Paths.get(filesLocation).resolve(input.getOperatorFile()));
                 if (!configs.isEmpty()) {
-                    Path path = Paths.get(v2rayLocation).resolve(input.getOperatorFile());
+                    Path path = Paths.get(filesLocation).resolve(input.getOperatorFile());
                     gitHubsSrv.githubUploader("shahrestanaki/v2config", input.getOperatorFile(), "master", path.getFileName(), "created or update file : " + input.getOperatorFile());
                 }
             }
         } catch (Exception e) {
-            log.error("error in checkConfig: ", e);
+            log.error("error in pushToGitHub: ", e);
         }
         return result;
     }
@@ -101,23 +105,48 @@ public class ReadConfigSrv implements IReadConfigSrv {
 
     private List<String> checkConfig(List<String> configs, InputDto input) {
         List<String> data = new ArrayList<>();
+        Map<String, Double> result = new HashMap<>();
         try {
-            //////////configs.forEach(item -> {
-                ////////boolean result = v2GenerateSrv.vless(item, Paths.get(filesLocation).resolve(input.getOperatorFile()));
-                boolean result = v2GenerateSrv.vless(configs.get(0), Paths.get(v2rayLocation));
-                if (result) {
-                    //check config
-                    if (result) {
-                        //sort by response and save in : data
+            configs.forEach(item -> {
+                boolean status = v2GenerateSrv.vless(item, Paths.get(v2rayMainLocation + v2rayConfigFile));
+                log.info("success save json file for record {}: is: {} in operator: {}", 0, status, input.getOperator());
+                if (status) {
+                    Double time = checkCurlCall(v2GenerateSrv.testConnection());
+                    log.info("timing for record {}: is: {} ", 0, time);
+                    if (time != null && time < v2rayMaxPing) {
+                        result.put(configs.get(0), time);
                     }
                 }
-            /////////});
-            //filesSrv.saveToFile(configs, Paths.get(v2rayLocation).resolve(input.getOperatorFile()));
+            });
+            if (!result.isEmpty()) {
+                data = result.entrySet().stream()
+                        .sorted(Map.Entry.comparingByValue())
+                        .map(Map.Entry::getKey)
+                        .toList();
+            }
+            if (!data.isEmpty()) {
+                log.info("total : {} record success for operator: {} ", data.size(), input.getOperator());
+                filesSrv.saveToFile(data, Paths.get(filesLocation).resolve(input.getOperatorFile()));
+            }
         } catch (Exception e) {
-            log.error("error in gatheringConfigs: ", e);
+            log.error("error in checkConfig: ", e);
         }
         log.info("result for checkConfig is {} records", data.size());
         return data;
+    }
+
+    private Double checkCurlCall(String response) {
+        Double result = null;
+        try {
+            if (response.toLowerCase().contains("time:")) {
+                String[] parts = response.split(":");
+                String numberStr = parts[1].trim();
+                result = Double.parseDouble(numberStr);
+            }
+        } catch (Exception e) {
+            log.error("error in gatheringConfigs: ", e);
+        }
+        return result;
     }
 
     private List<String> readUrl(String url) {
