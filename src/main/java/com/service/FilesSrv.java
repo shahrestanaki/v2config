@@ -28,6 +28,17 @@ public class FilesSrv {
         log.info("result for saveToFile is {} records", data.size());
         return result;
     }
+    public boolean saveToJsonFile(String json, Path path) {
+        boolean result = false;
+        try {
+            Files.writeString(path, json, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            result = true;
+        } catch (Exception e) {
+            log.error("error : ", e);
+        }
+        log.info("Config written to: " + path.toAbsolutePath());
+        return result;
+    }
 
     public List<String> readFile(Path path) {
         List<String> result = new ArrayList<>();

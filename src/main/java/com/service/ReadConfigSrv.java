@@ -22,6 +22,7 @@ public class ReadConfigSrv implements IReadConfigSrv {
 
     private final FilesSrv filesSrv;
     private final GitHubsSrv gitHubsSrv;
+    private final V2GenerateSrv v2GenerateSrv;
 
     @Value("${config.file.subscribe}")
     private String subscribe;
@@ -38,9 +39,10 @@ public class ReadConfigSrv implements IReadConfigSrv {
         return Arrays.asList(supportedProtocols.split(","));
     }
 
-    public ReadConfigSrv(FilesSrv filesSrv, GitHubsSrv gitHubsSrv) {
+    public ReadConfigSrv(FilesSrv filesSrv, GitHubsSrv gitHubsSrv, V2GenerateSrv v2GenerateSrv) {
         this.filesSrv = filesSrv;
         this.gitHubsSrv = gitHubsSrv;
+        this.v2GenerateSrv = v2GenerateSrv;
     }
 
     @Override
@@ -100,9 +102,17 @@ public class ReadConfigSrv implements IReadConfigSrv {
     private List<String> checkConfig(List<String> configs, InputDto input) {
         List<String> data = new ArrayList<>();
         try {
-            filesSrv.saveToFile(configs, Paths.get(v2rayLocation).resolve(input.getOperatorFile()));
-            //check config
-            //sort by response and save in : data
+            //////////configs.forEach(item -> {
+                ////////boolean result = v2GenerateSrv.vless(item, Paths.get(filesLocation).resolve(input.getOperatorFile()));
+                boolean result = v2GenerateSrv.vless(configs.get(0), Paths.get(v2rayLocation));
+                if (result) {
+                    //check config
+                    if (result) {
+                        //sort by response and save in : data
+                    }
+                }
+            /////////});
+            //filesSrv.saveToFile(configs, Paths.get(v2rayLocation).resolve(input.getOperatorFile()));
         } catch (Exception e) {
             log.error("error in gatheringConfigs: ", e);
         }
