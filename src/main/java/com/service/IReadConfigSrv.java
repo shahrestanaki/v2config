@@ -13,4 +13,6 @@ public interface IReadConfigSrv {
     boolean checkConfig(InputDto input);
 
     boolean pushToGitHub(InputDto input);
+
+    void stopAndSaveConfig(InputDto input);
 }

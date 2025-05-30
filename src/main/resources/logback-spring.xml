@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration debug="false" scan="true" scanPeriod="15 seconds">
 
-    <property name="LOG_HOME" value="E:\ME\tempFile\logs" />
+    <property name="LOG_HOME" value="G:\Programing\java\shareFolder\v2ReadConfig\logs" />
     <springProfile name="develop">
         <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
             <encoder>

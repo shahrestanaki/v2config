@@ -78,4 +78,13 @@ public class MainController {
         }
         return result;
     }
+
+    @PostMapping(value = "stopAndSaveConfig")
+    public @ResponseBody void stopAndSaveConfig(@RequestBody InputDto input, HttpServletRequest request) {
+        try {
+            configSrv.stopAndSaveConfig(input);
+        } catch (Exception e) {
+            log.error("error : ", e);
+        }
+    }
 }

@@ -41,6 +41,7 @@ public class ReadConfigSrv implements IReadConfigSrv {
     private String noneFile;
     @Value("${config.v2ray.maxPing}")
     private Double v2rayMaxPing;
+    private boolean stopOpration = false;
 
     public List<String> getSupportedProtocols() {
         return Arrays.asList(supportedProtocols.split(","));
@@ -108,20 +109,25 @@ public class ReadConfigSrv implements IReadConfigSrv {
     private List<String> checkConfig(List<String> configs, InputDto input) {
         List<String> data = new ArrayList<>();
         Map<String, Double> result = new HashMap<>();
+        stopOpration = false;
         try {
-            AtomicInteger count = new AtomicInteger();
-            configs.forEach(item -> {
+            int count = 0;
+            for(String item : configs){
+                if(stopOpration){
+                    break;
+                }
                 boolean status = v2GenerateSrv.vless(item, Paths.get(v2rayMainLocation + v2rayConfigFile));
-                log.info("success save json file for record {}: is: {} in operator: {}", 0, status, input.getOperator());
+                log.debug("success save json file for record {}: is: {} in operator: {}", count, status, input.getOperator());
                 if (status) {
                     Double time = checkCurlCall(v2GenerateSrv.testConnection());
-                    log.info("timing for record {}: is: {} ", count.get(), time);
+                    log.info("timing for record {}: is: {} ", count, time);
                     if (time != null && time < v2rayMaxPing) {
+                        log.info("accept config: {} ", count);
                         result.put(configs.get(0), time);
                     }
                 }
-                count.getAndIncrement();
-            });
+                count++;
+            }
             if (!result.isEmpty()) {
                 data = result.entrySet().stream()
                         .sorted(Map.Entry.comparingByValue())
@@ -206,5 +212,8 @@ public class ReadConfigSrv implements IReadConfigSrv {
         }
     }
 
-
+    @Override
+    public void stopAndSaveConfig(InputDto input) {
+        stopOpration = true;
+    }
 }
