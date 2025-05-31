@@ -14,7 +14,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author m.Shahrestanaki @createDate 5/26/2025
@@ -41,7 +40,13 @@ public class ReadConfigSrv implements IReadConfigSrv {
     private String noneFile;
     @Value("${config.v2ray.maxPing}")
     private Double v2rayMaxPing;
-    private boolean stopOpration = false;
+    @Value("${config.github.gitHubRepo}")
+    private String gitHubRepo;
+    @Value("${config.github.branch}")
+    private String branch;
+    @Value("${config.v2ray.maxConfig}")
+    private Integer maxConfig;
+    private boolean stopOperation = false;
 
     public List<String> getSupportedProtocols() {
         return Arrays.asList(supportedProtocols.split(","));
@@ -96,8 +101,8 @@ public class ReadConfigSrv implements IReadConfigSrv {
         try {
             Path path = Paths.get(filesLocation).resolve(input.getOperatorFile());
             if (Files.exists(path)) {
-                gitHubsSrv.githubUploader("shahrestanaki/v2config", input.getOperatorFile(),
-                        "master", path, "created or update file : " + input.getOperatorFile());
+                gitHubsSrv.githubUploader("shahrestanaki/"+ gitHubRepo, input.getOperatorFile(),
+                        branch, path, "created or update file : " + input.getOperatorFile() + " in : " + new Date());
             }
         } catch (Exception e) {
             log.error("error in pushToGitHub: ", e);
@@ -109,11 +114,11 @@ public class ReadConfigSrv implements IReadConfigSrv {
     private List<String> checkConfig(List<String> configs, InputDto input) {
         List<String> data = new ArrayList<>();
         Map<String, Double> result = new HashMap<>();
-        stopOpration = false;
+        stopOperation = false;
         try {
             int count = 0;
             for(String item : configs){
-                if(stopOpration){
+                if(stopOperation || (maxConfig != null && result.size() >= maxConfig)){
                     break;
                 }
                 boolean status = v2GenerateSrv.vless(item, Paths.get(v2rayMainLocation + v2rayConfigFile));
@@ -169,7 +174,9 @@ public class ReadConfigSrv implements IReadConfigSrv {
                 log.info("OK url: {}", url);
                 Arrays.stream(response.body().split("\n"))
                         .map(String::trim)
+                        .map(line -> line.replaceAll("[\"'`\\s]+$", ""))
                         .filter(line -> getSupportedProtocols().stream().anyMatch(line::startsWith))
+                        .filter(line -> !isSuspiciousV2rayLink(line))
                         .forEach(data::add);
             } else {
                 log.error("Failed to fetch content. Status: {} in url: {}", response.statusCode(), url);
@@ -214,6 +221,28 @@ public class ReadConfigSrv implements IReadConfigSrv {
 
     @Override
     public void stopAndSaveConfig(InputDto input) {
-        stopOpration = true;
+        stopOperation = true;
+    }
+
+    public static boolean isSuspiciousV2rayLink(String link) {
+        String lower = link.toLowerCase();
+        if (lower.contains("security=none") && lower.contains("encryption=none")) return true;
+        if (lower.matches(".*:@[^:]+:(80|8880).*")) return true;
+        String[] badHosts = {
+                "speedtest.net", "foffmelo.com", "wlftest.xyz",
+                "hiddendom.shop", "filegear-sg.me", "zulai.ir",
+                "pronetwork.com"
+        };
+        for (String badHost : badHosts) {
+            if (lower.contains(badHost)) return true;
+        }
+
+        // telegram or ....
+        //if (lower.contains("t.me") || lower.contains("telegram") || lower.contains("shadowproxy")) return true;
+
+        // TLS or GRPC security
+        if (lower.contains("type=grpc") && lower.contains("security=none")) return true;
+
+        return false;
     }
 }

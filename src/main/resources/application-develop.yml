@@ -3,20 +3,23 @@ server:
 
 config:
   file:
-    filesLocation: E:\ME\tempFile\v2ReadConfig
+    filesLocation: G:\Programing\java\shareFolder\v2ReadConfig\
     none: none.txt
     subscribe: subscribe.txt
   v2ray:
-    main: E:\v-windows-64\
+    main: G:\Programing\java\shareFolder\v2ray-windows-64\  #https://github.com/v2fly/v2ray-core/releases
     configFile: config.json
     testPort: 8080
-    exe: v.exe
+    exe: v2ray.exe
     timeoutSeconds: 10
     urlTest: https://www.youtube.com
-    maxPing: 2000
+    maxPing: 3000
+    maxConfig: 50
   supported-protocols: "vmess://,vless://,trojan://,shadowsocks://,http://,socks://,dokodemo-door://"
   github:
     token: "ghp_Mc0DD2II4ZyimSLHOV9pqkbgGqDHSUB4O5NIy"
+    gitHubRepo: template
+    branch: main
 #spring:
 #  datasource:
 #    username: sa

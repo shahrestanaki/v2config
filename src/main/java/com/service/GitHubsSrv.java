@@ -26,6 +26,7 @@ public class GitHubsSrv {
     public void githubUploader(String repo, String path, String branch, Path localFilePath, String commitMessage) {
         try {
             // read file Base64
+            log.info("start updating ..... repo: {},path: {},branch: {},message: {}", repo,path,branch,commitMessage);
             byte[] fileBytes = Files.readAllBytes(localFilePath);
             String contentBase64 = Base64.getEncoder().encodeToString(fileBytes);
             String url = "https://api.github.com/repos/" + repo + "/contents/" + path;
@@ -51,6 +52,7 @@ public class GitHubsSrv {
                 sha = root.get("sha").asText();
             }
 
+            log.info("start commit to gitHub");
             //create with or withOut sha
             ObjectNode jsonNode = new ObjectMapper().createObjectNode();
             jsonNode.put("message", commitMessage);
