@@ -13,8 +13,8 @@ config:
     exe: v2ray.exe
     timeoutSeconds: 10
     urlTest: https://www.youtube.com
-    maxPing: 3000
-    maxConfig: 50
+    maxPing: 1000
+    maxConfig: 10
   supported-protocols: "vmess://,vless://,trojan://,shadowsocks://,http://,socks://,dokodemo-door://"
   github:
     token: "ghp_Mc0DD2II4ZyimSLHOV9pqkbgGqDHSUB4O5NIy"

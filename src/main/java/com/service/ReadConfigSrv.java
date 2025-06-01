@@ -65,7 +65,9 @@ public class ReadConfigSrv implements IReadConfigSrv {
             List<String> sub = filesSrv.readFile(Paths.get(filesLocation).resolve(subscribe));
             if (!sub.isEmpty()) {
                 Set<String> configs = new HashSet<>();
-                sub.forEach(url -> configs.addAll(readUrl(url)));
+                sub.stream()
+                        .filter(url-> !url.startsWith("#"))
+                        .forEach(url -> configs.addAll(readUrl(url)));
                 if (!configs.isEmpty()) {
                     result = filesSrv.saveToFile(new ArrayList<>(configs), Paths.get(filesLocation).resolve(noneFile));
                 }
@@ -84,9 +86,10 @@ public class ReadConfigSrv implements IReadConfigSrv {
             if (!configs.isEmpty()) {
                 List<String> confirmConfigs = checkConfig(new ArrayList<>(configs), input);
                 if (!confirmConfigs.isEmpty()) {
-                    String joinedConfigs = String.join("\n", configs);
-                    String base64Encoded = Base64.getEncoder().encodeToString(joinedConfigs.getBytes(StandardCharsets.UTF_8));
-                    result = filesSrv.saveToJsonOrBase64File(base64Encoded, Paths.get(filesLocation).resolve(input.getOperatorFile()));
+                    //String joinedConfigs = String.join("\n", configs);
+                    //String base64Encoded = Base64.getEncoder().encodeToString(joinedConfigs.getBytes(StandardCharsets.UTF_8));
+                    //result = filesSrv.saveToJsonOrBase64File(base64Encoded, Paths.get(filesLocation).resolve(input.getOperatorFile()));
+                    result = filesSrv.saveToFile(confirmConfigs, Paths.get(filesLocation).resolve(input.getOperatorFile()));
                 }
             }
         } catch (Exception e) {
@@ -115,8 +118,12 @@ public class ReadConfigSrv implements IReadConfigSrv {
         List<String> data = new ArrayList<>();
         Map<String, Double> result = new HashMap<>();
         stopOperation = false;
+        Process v2rayProcess = null;
         try {
             int count = 0;
+            v2rayProcess = v2GenerateSrv.startV2ray();
+            Thread.sleep(5000);
+            log.info("Running v2rayProcess? {}", v2rayProcess.isAlive());
             for(String item : configs){
                 if(stopOperation || (maxConfig != null && result.size() >= maxConfig)){
                     break;
@@ -124,11 +131,12 @@ public class ReadConfigSrv implements IReadConfigSrv {
                 boolean status = v2GenerateSrv.vless(item, Paths.get(v2rayMainLocation + v2rayConfigFile));
                 log.debug("success save json file for record {}: is: {} in operator: {}", count, status, input.getOperator());
                 if (status) {
-                    Double time = checkCurlCall(v2GenerateSrv.testConnection());
+                    String curlOutput = v2GenerateSrv.testCurl();
+                    Double time = checkCurlCall(curlOutput);
                     log.info("timing for record {}: is: {} ", count, time);
                     if (time != null && time < v2rayMaxPing) {
                         log.info("accept config: {} ", count);
-                        result.put(configs.get(0), time);
+                        result.put(item, time);
                     }
                 }
                 count++;
@@ -145,6 +153,8 @@ public class ReadConfigSrv implements IReadConfigSrv {
             }
         } catch (Exception e) {
             log.error("error in checkConfig: ", e);
+        } finally {
+            v2GenerateSrv.stopV2ray(v2rayProcess); // Always stop
         }
         log.info("result for checkConfig is {} records", data.size());
         return data;
@@ -153,10 +163,12 @@ public class ReadConfigSrv implements IReadConfigSrv {
     private Double checkCurlCall(String response) {
         Double result = null;
         try {
-            if (response.toLowerCase().contains("time:")) {
-                String[] parts = response.split(":");
-                String numberStr = parts[1].trim();
-                result = Double.parseDouble(numberStr);
+            if(response.contains("HTTP_CODE: 200")) {
+                if (response.toLowerCase().contains("time:")) {
+                    String[] parts = response.split(":");
+                    String numberStr = parts[1].trim();
+                    result = Double.parseDouble(numberStr);
+                }
             }
         } catch (Exception e) {
             log.error("error in gatheringConfigs: ", e);

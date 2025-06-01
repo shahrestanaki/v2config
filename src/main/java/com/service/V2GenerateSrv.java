@@ -9,10 +9,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -127,7 +130,8 @@ public class V2GenerateSrv {
         Process curlProcess = null;
         try {
             // run v2ray apps
-            ProcessBuilder v2rayProcessBuilder = new ProcessBuilder(v2rayMainLocation + v2rayExeFile, "-config", v2rayConfigFile);
+            log.info("config file : {}",v2rayMainLocation+v2rayConfigFile);
+            ProcessBuilder v2rayProcessBuilder = new ProcessBuilder(v2rayMainLocation + v2rayExeFile, "-config", v2rayMainLocation+v2rayConfigFile);
             v2rayProcess = v2rayProcessBuilder.start();
 
             //  sleep for upping V2Ray
@@ -135,10 +139,10 @@ public class V2GenerateSrv {
 
             ProcessBuilder curlProcessBuilder = new ProcessBuilder(
                     "curl",
-                    "-x", "socks5h://127.0.0.1:" + v2rayTestPort + "",
-                    "-o", "nul",
+                    "-x", "socks5h://127.0.0.1:" + v2rayTestPort,
                     "-s",
-                    "-w", "TIME: %{time_total}\\n",
+                    "-o", "nul",
+                    "-w", "HTTP_CODE: %{http_code} TIME: %{time_total}\\n",
                     "--max-time", String.valueOf(v2rayTimeoutSeconds),
                     v2rayUrlTest
             );
@@ -163,5 +167,51 @@ public class V2GenerateSrv {
             }
         }
         return result;
+    }
+
+    public Process startV2ray() throws IOException {
+        ProcessBuilder v2rayProcessBuilder = new ProcessBuilder(
+                v2rayMainLocation + v2rayExeFile,
+                "run",
+                "--config", v2rayMainLocation + v2rayConfigFile
+        );
+        v2rayProcessBuilder.redirectErrorStream(true);
+        Process process = v2rayProcessBuilder.start();
+        new Thread(() -> {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    log.info("[V2Ray] " + line);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }).start();
+        return process;
+    }
+
+    public void stopV2ray(Process process) {
+        if (process != null && process.isAlive()) {
+            process.destroy();
+        }
+    }
+
+    public String testCurl() throws IOException, InterruptedException {
+        ProcessBuilder curlProcessBuilder = new ProcessBuilder(
+                "curl",
+                "-x", "socks5h://127.0.0.1:" + v2rayTestPort,
+                "-s",
+                "-o", "nul",
+                "-w", "HTTP_CODE: %{http_code} TIME: %{time_total}\\n",
+                "--max-time", String.valueOf(v2rayTimeoutSeconds),
+                v2rayUrlTest
+        );
+        Process curlProcess = curlProcessBuilder.start();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(curlProcess.getInputStream()))) {
+            String line = reader.readLine();
+            log.info("response from curl: {}",line);
+            curlProcess.waitFor();
+            return line != null ? line : "No response from curl";
+        }
     }
 }

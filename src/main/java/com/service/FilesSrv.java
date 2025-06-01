@@ -35,7 +35,7 @@ public class FilesSrv {
         } catch (Exception e) {
             log.error("error : ", e);
         }
-        log.info("Config written to: " + path.toAbsolutePath());
+        log.debug("Config written to: " + path.toAbsolutePath());
         return result;
     }
 
