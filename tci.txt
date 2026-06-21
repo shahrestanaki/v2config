@@ -1,4 +1,3 @@
-vless://af2c3727-c1e7-41c1-86b5-7fb5fcc63359@64.118.155.66:44918?encryption=none&security=none&type=tcp&headerType=none#%F0%9F%87%BA%F0%9F%87%B8%20US%20%7C%2064.118.155.66
 vless://e7d3fb75-034f-4f3f-83d6-33845dafa81c@fast.cd-tur4.ir:443?encryption=none&security=tls&sni=default.ssl.fastly.net&type=ws&host=pan1.global.ssl.fastly.net&path=%2F#%F0%9F%87%BA%F0%9F%87%B8%20US%20%7C%20167.82.101.251
 vless://69a2af58-d74a-44ca-864a-e09b493f4274@45.144.48.187:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.intel.com&fp=firefox&pbk=hgQ3Wa09f9ectEos7QyC1LQ8bBq8lEAcAtGIDFTKin0&sid=c0&type=tcp&headerType=none#%F0%9F%87%B5%F0%9F%87%B1%20PL%20%7C%2045.144.48.187
 vless://52faee73-e0fe-4661-992d-67259257170f@45.206.0.44:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=storage.yandex.net&pbk=dY9SNEllJMW63xo-JdXufhmjAxB_4uFw_QMjgufjiD8&sid=ea10cd5686751ec5&type=tcp&headerType=none#%F0%9F%87%AC%F0%9F%87%A7%20GB%20%7C%2045.206.0.44
